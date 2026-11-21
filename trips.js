@@ -3,7 +3,7 @@ function tripDistanceLabel(m) {
   return m < 1000 ? Math.round(m) + ' m' : (m / 1000).toFixed(2) + ' km';
 }
 function currentTripElapsed(t) {
-  return Math.max(0, Math.floor(((t.end || Date.now()) - t.start) / 1000));
+  const stop = t.end || (t.paused && t.pauseAt ? t.pauseAt : Date.now());\n  return Math.max(0, Math.floor((stop - t.start - (t.pausedMs || 0)) / 1000));
 }
 function durationLabel(seconds) {
   const h = Math.floor(seconds / 3600), m = Math.floor((seconds % 3600) / 60), s = seconds % 60;
@@ -46,7 +46,7 @@ function recordTripPoint() {
 }
 function pauseTrip() {
   if (!S.activeTrip) return;
-  S.activeTrip.paused = true; save(); renderTrip(); toast('Trip paused.');
+  S.activeTrip.paused = true; S.activeTrip.pauseAt = Date.now(); save(); renderTrip(); toast('Trip paused.');
 }
 function resumeTrip() {
   if (!S.activeTrip) return;
