@@ -3,6 +3,7 @@ function setStatus(t) { $('#status').textContent = t; }
 
 const GEO = {
   gps: {enableHighAccuracy: true, maximumAge: 5000, timeout: 20000},
+  walk: {enableHighAccuracy: true, maximumAge: 0, timeout: 30000},
   network: {enableHighAccuracy: false, maximumAge: 60000, timeout: 15000} /* Wi-Fi and mobile data */
 };
 
@@ -41,6 +42,9 @@ async function initLocation() {
 
 function startWatch() {
   if (!navigator.geolocation) return showPerm('unsupported');
+  app.walking = false;
+  $('#walkBtn').textContent = 'Start walking';
+  $('#walkState').textContent = 'Walking mode is off.';
   if (app.watchId !== null) navigator.geolocation.clearWatch(app.watchId);
   app.lastMap = app.lastGeo = null;
   setStatus('Finding you…');
@@ -52,6 +56,33 @@ function startWatch() {
 function watch(options) {
   app.watchId = navigator.geolocation.watchPosition(onPos, e => onGeoError(e, options), options);
 }
+
+function startWalking() {
+  if (!navigator.geolocation) return showPerm('unsupported');
+  if (!window.isSecureContext) return showPerm('insecure');
+  app.walking = true;
+  if (app.watchId !== null) navigator.geolocation.clearWatch(app.watchId);
+  app.watchId = null;
+  app.lastMap = null;
+  $('#walkBtn').textContent = 'Stop walking';
+  $('#walkState').textContent = 'Walking mode is on. Keep this page open for live GPS updates.';
+  setStatus('Getting a fresh, high-accuracy GPS fix…');
+  watch(GEO.walk);
+  if (navigator.geolocation) navigator.geolocation.getCurrentPosition(onPos, e => onGeoError(e, GEO.walk), GEO.walk);
+  if (navigator.wakeLock && !app.wakeLock) navigator.wakeLock.request('screen').then(lock => { app.wakeLock = lock; lock.addEventListener('release', () => { app.wakeLock = null; }); }).catch(() => {});
+}
+
+function stopWalking() {
+  app.walking = false;
+  if (app.wakeLock) { app.wakeLock.release().catch(() => {}); app.wakeLock = null; }
+  $('#walkBtn').textContent = 'Start walking';
+  $('#walkState').textContent = 'Walking mode is off.';
+  if (app.watchId !== null) navigator.geolocation.clearWatch(app.watchId);
+  app.watchId = null;
+  watch(GEO.gps);
+  setStatus(app.pos ? 'Live location is on. Turn on Walking mode for more frequent GPS updates.' : 'Finding your location…');
+}
+
 
 function onGeoError(e, options) {
   if (e.code === 1) return showPerm('denied');
@@ -69,16 +100,17 @@ function syncOnline() {
 }
 
 const describeFix = accuracy => accuracy > 500
-  ? `Approximate location from Wi-Fi or mobile data, within about ${fmtDist(accuracy)}.`
-  : `Accurate to about ${Math.round(accuracy)} m.`;
+  ? `Approximate location, accuracy radius about ${fmtDist(accuracy)}. Turn on Precise location in phone settings for better GPS.`
+  : `GPS accuracy radius about ${Math.round(accuracy)} m.`;
 
 function onPos(p) {
   const {latitude: lat, longitude: lon, accuracy} = p.coords;
-  app.pos = {lat, lon};
-  $('#coords').textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+  app.pos = {lat, lon, accuracy, speed:p.coords.speed, heading:p.coords.heading, t:p.timestamp};
+  $('#coords').textContent = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+  if ($('#accuracy')) $('#accuracy').textContent = `Accuracy: ±${Math.round(accuracy)} m${Number.isFinite(p.coords.speed) && p.coords.speed >= 0.5 ? ` · Speed: ${(p.coords.speed * 3.6).toFixed(1)} km/h` : ''}`;
   $('#permCard').hidden = true;
   setStatus(`${describeFix(accuracy)} Updated ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}.`);
-  if (!app.lastMap || dist(app.lastMap, app.pos) > 30) drawMap();
+  if (!app.lastMap || dist(app.lastMap, app.pos) > (app.walking ? 5 : 30)) drawMap();
   if (!app.lastGeo || dist(app.lastGeo, app.pos) > 60 || Date.now() - app.lastGeo.t > 120000) reverse();
   checkArrival();
   renderDistances();
