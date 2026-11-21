@@ -43,6 +43,7 @@ async function initLocation() {
 function startWatch() {
   if (!navigator.geolocation) return showPerm('unsupported');
   app.walking = false;
+  $('#walkBtn').disabled = false;
   $('#walkBtn').textContent = 'Start walking';
   $('#walkState').textContent = 'Walking mode is off.';
   if (app.watchId !== null) navigator.geolocation.clearWatch(app.watchId);
@@ -58,18 +59,43 @@ function watch(options) {
 }
 
 function startWalking() {
-  if (!navigator.geolocation) return showPerm('unsupported');
   if (!window.isSecureContext) return showPerm('insecure');
+  if (!navigator.geolocation) return showPerm('unsupported');
+
   app.walking = true;
   if (app.watchId !== null) navigator.geolocation.clearWatch(app.watchId);
   app.watchId = null;
   app.lastMap = null;
-  $('#walkBtn').textContent = 'Stop walking';
-  $('#walkState').textContent = 'Walking mode is on. Keep this page open for live GPS updates.';
-  setStatus('Getting a fresh, high-accuracy GPS fix…');
-  watch(GEO.walk);
-  if (navigator.geolocation) navigator.geolocation.getCurrentPosition(onPos, e => onGeoError(e, GEO.walk), GEO.walk);
-  if (navigator.wakeLock && !app.wakeLock) navigator.wakeLock.request('screen').then(lock => { app.wakeLock = lock; lock.addEventListener('release', () => { app.wakeLock = null; }); }).catch(() => {});
+  $('#walkBtn').disabled = true;
+  $('#walkBtn').textContent = 'Starting…';
+  $('#walkState').textContent = 'Requesting live GPS. Allow location access if your phone asks.';
+  setStatus('Starting high-accuracy walking GPS…');
+
+  try {
+    // watchPosition itself requests permission and keeps delivering fresh fixes.
+    app.watchId = navigator.geolocation.watchPosition(
+      onPos,
+      e => onGeoError(e, GEO.walk),
+      {enableHighAccuracy: true, maximumAge: 0, timeout: 60000}
+    );
+    $('#walkBtn').disabled = false;
+    $('#walkBtn').textContent = 'Stop walking';
+    $('#walkState').textContent = 'Walking mode is on. Keep this page open and screen awake for live updates.';
+
+    if (navigator.wakeLock && !app.wakeLock) {
+      navigator.wakeLock.request('screen').then(lock => {
+        app.wakeLock = lock;
+        lock.addEventListener('release', () => { app.wakeLock = null; });
+      }).catch(() => {});
+    }
+  } catch (error) {
+    app.walking = false;
+    app.watchId = null;
+    $('#walkBtn').disabled = false;
+    $('#walkBtn').textContent = 'Start walking';
+    $('#walkState').textContent = 'Could not start GPS. Check browser location permission and try again.';
+    setStatus('GPS could not start: ' + (error.message || 'browser error'));
+  }
 }
 
 function stopWalking() {
@@ -85,13 +111,25 @@ function stopWalking() {
 
 
 function onGeoError(e, options) {
-  if (e.code === 1) return showPerm('denied');
-  if (options === GEO.gps) { /* no GPS signal, for example indoors */
-    navigator.geolocation.clearWatch(app.watchId);
-    setStatus('No GPS signal. Using Wi-Fi and mobile data instead…');
+  if (e.code === 1) {
+    app.walking = false;
+    $('#walkBtn').disabled = false;
+    $('#walkBtn').textContent = 'Start walking';
+    $('#walkState').textContent = 'Location permission is blocked. Allow location for this website in Chrome settings.';
+    return showPerm('denied');
+  }
+  if (options === GEO.gps) {
+    if (app.watchId !== null) navigator.geolocation.clearWatch(app.watchId);
+    setStatus('GPS signal is weak. Switching to network location…');
     return watch(GEO.network);
   }
-  setStatus('Can’t get a location fix. Check that location is on in your phone settings, then tap Find me.');
+  if (app.walking) {
+    const reason = e.code === 3 ? 'GPS is taking too long to get a fix.' : 'GPS position is temporarily unavailable.';
+    $('#walkState').textContent = reason + ' Move outdoors and keep Walking mode on while it retries.';
+    setStatus(reason + ' Checking again…');
+    return;
+  }
+  setStatus('Can’t get a location fix. Check phone location settings and try again.');
 }
 
 function syncOnline() {
