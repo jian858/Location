@@ -63,6 +63,7 @@ function startWalking() {
   if (!navigator.geolocation) return showPerm('unsupported');
 
   app.walking = true;
+  if (typeof beginWalkingTrip === 'function') beginWalkingTrip();
   if (app.watchId !== null) navigator.geolocation.clearWatch(app.watchId);
   app.watchId = null;
   app.lastMap = null;
@@ -80,7 +81,7 @@ function startWalking() {
     );
     $('#walkBtn').disabled = false;
     $('#walkBtn').textContent = 'Stop walking';
-    $('#walkState').textContent = 'Walking mode is on. Keep this page open and screen awake for live updates.';
+    $('#walkState').textContent = 'Walking started. Your route is recording automatically. Keep this page open for live GPS updates.';
 
     if (navigator.wakeLock && !app.wakeLock) {
       navigator.wakeLock.request('screen').then(lock => {
@@ -100,6 +101,7 @@ function startWalking() {
 
 function stopWalking() {
   app.walking = false;
+  if (typeof pauseWalkingTrip === 'function') pauseWalkingTrip();
   if (app.wakeLock) { app.wakeLock.release().catch(() => {}); app.wakeLock = null; }
   $('#walkBtn').textContent = 'Start walking';
   $('#walkState').textContent = 'Walking mode is off.';
@@ -113,6 +115,7 @@ function stopWalking() {
 function onGeoError(e, options) {
   if (e.code === 1) {
     app.walking = false;
+    if (typeof pauseWalkingTrip === 'function') pauseWalkingTrip();
     $('#walkBtn').disabled = false;
     $('#walkBtn').textContent = 'Start walking';
     $('#walkState').textContent = 'Location permission is blocked. Allow location for this website in Chrome settings.';
