@@ -3,6 +3,7 @@ const placeOf = d => S.places.find(p => p.id === d.id);
 
 const actions = {
   find: startWatch,
+  walkStart() { app.walking ? stopWalking() : startWalking(); },
   share,
   wa() { if (needPos()) go(`https://wa.me/?text=${encodeURIComponent(shareText())}`); },
   copy() { if (needPos()) copyText(shareText()); },
