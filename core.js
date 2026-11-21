@@ -30,7 +30,7 @@ function toast(msg) {
 /* ---------- state and storage ---------- */
 const KEY = 'here.v1';
 const S = {places: [], parked: null, history: [], contact: '', theme: '', trips: [], activeTrip: null};
-const app = {pos: null, addr: '', lastMap: null, lastGeo: null, notified: new Set(), watchId: null};
+const app = {pos: null, addr: '', lastMap: null, lastGeo: null, notified: new Set(), watchId: null, walking: false, wakeLock: null};
 
 function load() {
   try {
