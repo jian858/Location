@@ -55,7 +55,7 @@ function load() {
     S.contact = typeof saved.contact === 'string' ? saved.contact.slice(0,40) : '';
     S.theme = ['light','dark'].includes(saved.theme) ? saved.theme : '';
     const validPoint = p => p && Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lon)) && Math.abs(Number(p.lat)) <= 90 && Math.abs(Number(p.lon)) <= 180;
-    const cleanTrip = t => t && Array.isArray(t.points) && t.points.length && t.points.length <= 5000 && t.points.every(validPoint) && Number.isFinite(Number(t.start)) ? {...t, start:Number(t.start), end:t.end ? Number(t.end) : null, distance:Math.max(0, Number(t.distance) || 0), points:t.points.map(p=>({lat:Number(p.lat),lon:Number(p.lon),t:Number(p.t)||Number(t.start)})), paused:true, pauseAt:null, pausedMs:Math.max(0,Number(t.pausedMs)||0)} : null;
+    const cleanTrip = t => t && Array.isArray(t.points) && t.points.length && t.points.length <= 5000 && t.points.every(validPoint) && Number.isFinite(Number(t.start)) ? {...t, start:Number(t.start), end:t.end ? Number(t.end) : null, distance:Math.max(0, Number(t.distance) || 0), points:t.points.map(p=>({lat:Number(p.lat),lon:Number(p.lon),t:Number(p.t)||Number(t.start)})), paused:true, pauseAt:(t.paused && t.pauseAt ? Number(t.pauseAt) : (Number(t.points[t.points.length - 1].t) || Number(t.start))), pausedMs:Math.max(0,Number(t.pausedMs)||0)} : null;
     S.trips = Array.isArray(saved.trips) ? saved.trips.map(cleanTrip).filter(Boolean).slice(0,20) : [];
     S.activeTrip = cleanTrip(saved.activeTrip);
   } catch (e) {
