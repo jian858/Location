@@ -24,6 +24,29 @@ function renderTrip() {
   }
   $('#tripList').innerHTML = (S.trips || []).map((trip, i) => `<li class="card"><b>${esc(trip.name || 'Trip ' + (S.trips.length - i))}</b><div class="mute">${esc(fmtTime(trip.start))} · ${tripDistanceLabel(trip.distance)} · ${durationLabel(currentTripElapsed(trip))}</div><div class="row"><button class="btn primary" data-act="tripExport" data-i="${i}">Export GPX</button><button class="btn" data-act="tripDelete" data-i="${i}">Delete</button></div></li>`).join('') || '<li class="mute">Your finished trips will appear here.</li>';
 }
+function beginWalkingTrip() {
+  if (S.activeTrip && !S.activeTrip.paused) return;
+  if (S.activeTrip && S.activeTrip.paused) {
+    S.activeTrip.paused = false;
+    S.activeTrip.pauseAt = null;
+    if (app.pos) S.activeTrip.points.push({lat:app.pos.lat,lon:app.pos.lon,t:Date.now()});
+  } else if (app.pos) {
+    S.activeTrip = {id:'walk' + Date.now(), name:'Walking ' + new Date().toLocaleDateString(), start:Date.now(), end:null, distance:0, points:[{lat:app.pos.lat,lon:app.pos.lon,t:Date.now()}], paused:false, walkingMode:true};
+  } else {
+    S.activeTrip = {id:'walk' + Date.now(), name:'Walking ' + new Date().toLocaleDateString(), start:Date.now(), end:null, distance:0, points:[], paused:false, walkingMode:true};
+  }
+  save();
+  renderTrip();
+  $('#walkState').textContent = 'Walking started. Route recording will begin with your next GPS update.';
+}
+function pauseWalkingTrip() {
+  const t = S.activeTrip;
+  if (!t || !t.walkingMode || t.paused) return;
+  t.paused = true;
+  t.pauseAt = Date.now();
+  save();
+  renderTrip();
+}
 function startTrip() {
   if (!needPos()) return;
   if (S.activeTrip) return toast('Finish or resume your current trip first.');
@@ -33,10 +56,11 @@ function startTrip() {
 function recordTripPoint() {
   const t = S.activeTrip;
   if (!t || t.paused || !app.pos) return;
+  if (!t.points.length) { t.points.push({lat:app.pos.lat,lon:app.pos.lon,t:Date.now()}); save(); renderTrip(); return; }
   const last = t.points[t.points.length - 1], now = Date.now();
   const moved = dist(last, app.pos);
-  if (moved < 10 && now - last.t < 30000) return;
-  if (moved < 10) return;
+  const threshold = t.walkingMode ? 4 : 10;
+  if (app.pos.accuracy > 100 || moved < threshold) return;
   t.distance += moved;
   t.points.push({lat:app.pos.lat,lon:app.pos.lon,t:now});
   if (t.points.length > 5000) {
