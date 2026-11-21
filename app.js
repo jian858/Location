@@ -80,4 +80,8 @@ initLocation();
 syncOnline();
 addEventListener('online', syncOnline);
 addEventListener('offline', syncOnline);
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+if ('serviceWorker' in navigator && window.isSecureContext) {
+  navigator.serviceWorker.register('./sw.js').catch(error => {
+    console.warn('Location offline support could not be enabled:', error);
+  });
+}
