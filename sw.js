@@ -1,5 +1,5 @@
 /* Location app service worker: cache only this app's own files. */
-const CACHE_NAME = 'here-location-v4';
+const CACHE_NAME = 'here-location-v5';
 const APP_SHELL = [
   './','./index.html','./style.css','./core.js','./location.js',
   './sharing.js','./places.js','./parking.js','./storage.js','./trips.js','./app.js',
