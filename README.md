@@ -8,6 +8,7 @@ A mobile-friendly location and personal navigation web app. It helps people find
 - **Places:** save, rename, delete, navigate to, and set arrival alerts for saved places.
 - **Nearby:** open Google Maps searches for common services or a custom search around the current position.
 - **Parking:** save the parking coordinates, a note, and an optional compressed photo.\n- **Trips:** record a GPS route, pause/resume, view distance and duration, save up to 20 trips locally, and export GPX files.
+- **Walking mode:** request fresh high-accuracy GPS updates while walking, show the reported accuracy radius and GPS speed when available, and refresh the map as your position moves.
 - **More:** emergency contact, light/dark/system theme, CSV import/export, and recent location history.
 
 ## Project structure
@@ -56,7 +57,7 @@ The manifest, icon, scripts, stylesheet, and service worker use relative paths s
 - Address lookup uses the OpenStreetMap Nominatim service. The map preview uses OpenStreetMap.
 - Nearby searches and navigation open Google Maps.
 - The emergency action opens the phone's SMS composer; the user reviews and sends the message.
-- Arrival alerts and trip recording work only while the page is open and location updates are being delivered. This is not a background tracking service.
+- Arrival alerts, walking mode, and trip recording work only while the page is open and location updates are being delivered. Walking mode may request a screen wake lock where supported, but the operating system can still pause location updates. This is not a background tracking service.
 
 ## Offline behavior
 
