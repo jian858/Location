@@ -117,11 +117,41 @@ function onPos(p) {
   if (typeof recordTripPoint === 'function') recordTripPoint();
 }
 
+let liveMap = null;
+let liveMarker = null;
+let liveAccuracy = null;
+
 function drawMap() {
-  const {lat, lon} = app.pos, d = 0.004;
+  const {lat, lon, accuracy} = app.pos;
+  const point = [lat, lon];
   app.lastMap = {lat, lon};
-  $('#map').src = `https://www.openstreetmap.org/export/embed.html?bbox=${lon - d},${lat - d},${lon + d},${lat + d}&layer=mapnik&marker=${lat},${lon}`;
+
+  if (!window.L) {
+    setStatus('Map library is still loading. Your GPS location is updating.');
+    return;
+  }
+
+  if (!liveMap) {
+    liveMap = L.map('map', {zoomControl: true, scrollWheelZoom: true}).setView(point, 17);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(liveMap);
+    liveMarker = L.circleMarker(point, {
+      radius: 9, color: '#ffffff', weight: 3, fillColor: '#0878d1', fillOpacity: 1
+    }).addTo(liveMap).bindTooltip('Your live location');
+    liveAccuracy = L.circle(point, {
+      radius: accuracy, color: '#0878d1', weight: 1, fillColor: '#0878d1', fillOpacity: 0.12
+    }).addTo(liveMap);
+  } else {
+    liveMarker.setLatLng(point);
+    liveAccuracy.setLatLng(point);
+    liveAccuracy.setRadius(accuracy);
+    liveMap.panTo(point, {animate: true, duration: 0.6});
+  }
+
   $('#map').hidden = false;
+  requestAnimationFrame(() => liveMap.invalidateSize());
 }
 
 async function reverse() {
