@@ -1,8 +1,8 @@
 /* Location app service worker: cache only this app's own files. */
-const CACHE_NAME = 'here-location-v2';
+const CACHE_NAME = 'here-location-v3';
 const APP_SHELL = [
   './','./index.html','./style.css','./core.js','./location.js',
-  './sharing.js','./places.js','./parking.js','./storage.js','./app.js',
+  './sharing.js','./places.js','./parking.js','./storage.js','./trips.js','./app.js',
   './manifest.json','./icons/icon.svg'
 ];
 self.addEventListener('install', event => {
