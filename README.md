@@ -7,7 +7,7 @@ A mobile-friendly location and personal navigation web app. It helps people find
 - **Here:** current coordinates, OpenStreetMap preview, address lookup, share/copy/WhatsApp actions, and an emergency SMS draft.
 - **Places:** save, rename, delete, navigate to, and set arrival alerts for saved places.
 - **Nearby:** open Google Maps searches for common services or a custom search around the current position.
-- **Parking:** save the parking coordinates, a note, and an optional compressed photo.
+- **Parking:** save the parking coordinates, a note, and an optional compressed photo.\n- **Trips:** record a GPS route, pause/resume, view distance and duration, save up to 20 trips locally, and export GPX files.
 - **More:** emergency contact, light/dark/system theme, CSV import/export, and recent location history.
 
 ## Project structure
@@ -21,7 +21,7 @@ A mobile-friendly location and personal navigation web app. It helps people find
 | `sharing.js` | Share, copy, WhatsApp, and emergency SMS |
 | `places.js` | Saved places and arrival alerts |
 | `parking.js` | Parking spot and photo handling |
-| `storage.js` | Location history and CSV backup/import |
+| `storage.js` | Location history and CSV backup/import |\n| `trips.js` | Local GPS trip recording and GPX export |
 | `app.js` | Event handlers and app startup |
 | `manifest.json` | Progressive Web App metadata |
 | `sw.js` | App-shell caching for offline loading |
@@ -51,12 +51,12 @@ The manifest, icon, scripts, stylesheet, and service worker use relative paths s
 
 ## Privacy and data
 
-- Saved places, parking information, emergency contact, theme, and history are stored in this browser's local storage. They are not synced to an account or another device.
+- Saved places, parking information, emergency contact, theme, history, and trip routes are stored in this browser's local storage. They are not synced to an account or another device.
 - Location is requested from the browser only after permission is granted.
 - Address lookup uses the OpenStreetMap Nominatim service. The map preview uses OpenStreetMap.
 - Nearby searches and navigation open Google Maps.
 - The emergency action opens the phone's SMS composer; the user reviews and sends the message.
-- Arrival alerts work only while the page is open and location updates are being delivered. This is not a background tracking service.
+- Arrival alerts and trip recording work only while the page is open and location updates are being delivered. This is not a background tracking service.
 
 ## Offline behavior
 
