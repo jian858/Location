@@ -25,6 +25,10 @@ function renderTrip() {
   $('#tripList').innerHTML = (S.trips || []).map((trip, i) => `<li class="card"><b>${esc(trip.name || 'Trip ' + (S.trips.length - i))}</b><div class="mute">${esc(fmtTime(trip.start))} · ${tripDistanceLabel(trip.distance)} · ${durationLabel(currentTripElapsed(trip))}</div><div class="row"><button class="btn primary" data-act="tripExport" data-i="${i}">Export GPX</button><button class="btn" data-act="tripDelete" data-i="${i}">Delete</button></div></li>`).join('') || '<li class="mute">Your finished trips will appear here.</li>';
 }
 function beginWalkingTrip() {
+  if (S.activeTrip && !S.activeTrip.walkingMode) {
+    toast('A trip is already in progress. Finish it before starting automatic Walking route recording.');
+    return;
+  }
   if (S.activeTrip && !S.activeTrip.paused) return;
   if (S.activeTrip && S.activeTrip.paused) {
     S.activeTrip.paused = false;
