@@ -26,7 +26,13 @@ const actions = {
   },
   clearHist() { S.history = []; save(); renderHistory(); },
   exportPlaces,
-  exportHistory
+  exportHistory,
+  tripStart: startTrip,
+  tripPause: pauseTrip,
+  tripResume: resumeTrip,
+  tripStop: stopTrip,
+  tripExport(d) { exportTrip(d.i); },
+  tripDelete(d) { deleteTrip(d.i); }
 };
 
 document.addEventListener('click', e => {
@@ -76,6 +82,7 @@ $('#contact').value = S.contact;
 renderPlaces();
 renderParked();
 renderHistory();
+renderTrip();
 initLocation();
 syncOnline();
 addEventListener('online', syncOnline);
