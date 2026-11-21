@@ -82,6 +82,7 @@ function onPos(p) {
   if (!app.lastGeo || dist(app.lastGeo, app.pos) > 60 || Date.now() - app.lastGeo.t > 120000) reverse();
   checkArrival();
   renderDistances();
+  if (typeof recordTripPoint === 'function') recordTripPoint();
 }
 
 function drawMap() {
