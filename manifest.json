@@ -1,0 +1,24 @@
+{
+  "id": "./",
+  "name": "Here: my location",
+  "short_name": "Here",
+  "description": "Find, save and share your location. Keep parking spots and favourite places close at hand.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#eef2f5",
+  "theme_color": "#0a6ebd",
+  "categories": [
+    "navigation",
+    "utilities"
+  ],
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
